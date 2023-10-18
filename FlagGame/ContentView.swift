@@ -9,8 +9,36 @@ import SwiftUI
 
 struct ContentView: View {
     var asean = ["Indonesia", "Singapore", "Malaysia", "Laos", "Philipines", "Cambodia", "Myanmar", "Thailand", "Brunei", "Vietnam"]
-    var angkaRandom = Int.random(in: 0...9)
-//    var alreadyCorrect: [Int]
+    
+    @State var choice = Int.random(in: 0...9)
+    @State var alreadyCorrect: [Int] = []
+    @State var totalCorrect = 0
+    @State var totalAttempts = 0
+    @State var showAlert = false
+    
+    // Generate a random index that hasn't been used before
+    func GetChoice() {
+        while true {
+            let randomIndex = Int.random(in: 0..<asean.count)
+            if !alreadyCorrect.contains(randomIndex) {
+                choice = randomIndex
+                return
+            }
+        }
+    }
+    
+    func checkAnswer(index: Int) {
+        if index == choice {
+            totalCorrect += 1
+            alreadyCorrect.append(choice)
+        }
+        totalAttempts += 1
+        if totalAttempts == 10 {
+            showAlert = true
+        } else {
+            GetChoice()
+        }
+    }
     
     var body: some View {
         ZStack{
@@ -21,7 +49,7 @@ struct ContentView: View {
             VStack{
                 Text("Pilih Bendera dari Negara : ")
                     .foregroundStyle(.black)
-                Text(asean[angkaRandom])
+                Text(asean[choice])
                     .bold()
                     .font(.title)
                     .foregroundStyle(.black)
@@ -34,6 +62,7 @@ struct ContentView: View {
             VStack{
                 ForEach(0..<5) { number in
                     Button {
+                        checkAnswer(index: number)
                     } label: {
                         Image(asean[number])
                             .resizable()
@@ -47,6 +76,7 @@ struct ContentView: View {
             VStack{
                 ForEach(5..<10) { number in
                     Button {
+                        checkAnswer(index: number)
                     } label: {
                         Image(asean[number])
                             .resizable()
@@ -57,6 +87,17 @@ struct ContentView: View {
                 }
             }
             Spacer()
+        }
+        
+        .alert("Game over!", isPresented: $showAlert) {
+            Button("Retry", role: .cancel) {
+                alreadyCorrect = []
+                totalCorrect = 0
+                totalAttempts = 0
+                GetChoice()
+            }
+        } message: {
+            Text("Benar: \(totalCorrect) dan Salah: \(asean.count-totalCorrect)")
         }
     }
 }
